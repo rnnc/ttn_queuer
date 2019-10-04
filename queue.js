@@ -4,7 +4,7 @@ const fs = require('fs');
 const Queue = [];
 
 /** @returns {Array} */
-module.exports.getQueue = [];
+module.exports.getQueue = () => Queue;
 
 /** @param {[vidObject]} vidObjects*/
 module.exports.pushToQueue = (vidObjects) => {
