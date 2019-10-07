@@ -23,18 +23,17 @@ const queue_push_prompt = [
     type: 'input',
     message: 'Enter a youtube link\n',
     name: 'push_link',
-    validate: (input) => {
-
-      if (input == "" || input == " ")
-        return 'Input is empty';
-
-      return true;
-
-    }
+    validate: (input) =>
+      (input == "" || input == " ")
+        ? 'Input is empty'
+        : true
   }, {
     type: 'input',
     message: 'Enter a name\n',
-    name: 'push_name'
+    name: 'push_name',
+    default: ({push_link}) => {
+      
+    }
   }
 ]
 
@@ -43,10 +42,10 @@ const queue_remove_prompt = [
     type: 'list',
     name: 'queue_remove',
     message: 'What link do you want to remove?',
-    choices: () => {
-      return Queue.getQueue().map((vid, i) =>
-        ({ name: vid.name, value: i }))
-    }
+    choices: () =>
+      Queue.getQueue()
+        .map((vid, i) => ({ name: vid.name, value: i }))
+        .push({ name: "--Don't Remove--", value: "x" })
   }
 ]
 
@@ -54,6 +53,14 @@ const queue_remove_prompt = [
 async function main() {
 
   //setTimeout(() => { console.log('\n\nTimeout') }, 5000);
+
+  //testing
+  Queue.pushToQueue([
+    { name: 'vid1', url: 'link1' },
+    { name: 'vid2', url: 'link2' },
+    { name: 'vid3', url: 'link3' },
+    { name: 'vid4', url: 'link4' }
+  ]);
 
   while (true) {
     const { menu_choice } = await inquirer.prompt(main_menu_prompt);
