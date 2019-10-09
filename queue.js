@@ -16,6 +16,10 @@ module.exports.pushToQueue = (vidObjects) => {
 /** @return {vidObject} */
 module.exports.pullFromQueue = () => Queue.unshift();
 
+module.exports.removeFromQueue = (index) => {
+  return Queue.splice(index, 1)[0].name;
+}
+
 // Backs up queue to json in case
 function backupQueue() {
 

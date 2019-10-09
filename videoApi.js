@@ -1,9 +1,6 @@
 const axios = require('axios');
 const Vimeo = require('vimeo').Vimeo;
 
-//testing
-require('dotenv').config();
-
 const YOUTUBE_REGEX_VIDEO = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
 const GOOGLEDRIVE_REGEX = /(?:.*)(?:drive\.google\.com\/file\/d\/|open\?id=|docs.google.com\/file\/d\/)([-\w]{25,})(?:.*)/;
 const DAILYMOTION_REGEX = /^.*(dailymotion.com\/video\/|dai\.ly\/)([^_]+).*/;
@@ -36,16 +33,15 @@ module.exports.getVideoName = async (url) => {
         return getVideoNameDrive(url)
         break;
 
-      case false:
+      case "error":
         throw "Video source unrecognized";
         break;
 
       default:
+        throw "Switch conditional error"
         break;
     }
-  } catch (e) {
-
-  }
+  } catch (e) { throw `${e} (videoApi)` }
 }
 
 /**
@@ -76,7 +72,6 @@ async function getVideoNameYoutube(url) {
     + `&key=${YOUTUBE_API_KEY}`;
 
   return (await axios.get(reqUrl)).data.items[0].snippet.title;
-
 }
 
 function getVideoNameVimeo(url) {
@@ -93,26 +88,25 @@ function getVideoNameVimeo(url) {
         resolve(body.name)
       })
   })
-
 }
 
 async function getVideoNameDailymotion(url) {
 
   const videoId = DAILYMOTION_REGEX.exec(url)[2];
+  if (!videoId) throw "Video link parsing error - Dailymotion";
 
-  const reqUrl = `https://api.dailymotion.com/video/${videoId}?fields=title,url`;
+  const reqUrl = `https://api.dailymotion.com/video/${videoId}?fields=title`;
 
   return (await axios.get(reqUrl)).data.title;
-
 }
 
 async function getVideoNameDrive(url) {
 
   const videoId = GOOGLEDRIVE_REGEX.exec(url)[1];
+  if (!videoId) throw "Video link parsing error - Google Drive";
 
-  const reqUrl = `https://www.googleapis.com/drive/v3/files/${videoId}?fields=name`
-    + `&key=${YOUTUBE_API_KEY}`;
+  const reqUrl = `https://www.googleapis.com/drive/v3/`
+    + `files/${videoId}?fields=name&key=${YOUTUBE_API_KEY}`;
 
   return (await axios.get(reqUrl)).data.name;
-
 }
