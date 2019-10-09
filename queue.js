@@ -22,12 +22,15 @@ module.exports.removeFromQueue = (index) => {
 
 // Backs up queue to json in case
 function backupQueue() {
-
+  try {
+    fs.writeFileSync('./backup,json', JSON.stringify(Queue, null, 2));
+    return true;
+  } catch (e) { throw `Error backing up: ${e}` }
 }
 
 // restores backedup queue
 function restoreQueue() {
-
+  return JSON.parse(fs.readFileSync('./backup.json'));
 }
 
 /**
