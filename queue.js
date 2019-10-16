@@ -1,5 +1,5 @@
 const fs = require('fs');
-const FILENAME = "queue_backup.json";
+const { FILENAME } = process.env;
 
 /** @type {[vidObject]} */
 const Queue = [];
@@ -51,9 +51,15 @@ function backupQueue() {
 
 // restores backedup queue
 function restoreQueue() {
-  const previous_data = JSON.parse(fs.readFileSync(FILENAME));
-  Queue.push(...previous_data);
-  return true;
+  try {
+    fs.openSync(FILENAME, 'r');
+    const previous_data = JSON.parse(fs.readFileSync(FILENAME));
+    Queue.push(...previous_data);
+    return true;
+  } catch (e) {
+    fs.writeFileSync(FILENAME, JSON.stringify([], null, 2));
+    return true;
+  }
 }
 
 /**

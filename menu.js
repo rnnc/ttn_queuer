@@ -5,6 +5,10 @@ const videoApi = require('./videoApi');
 
 module.exports = async () => {
 
+  console.log(`\n { This is only terminal based menu }
+ { Run bot.js in a seperate terminal }
+  ------------------`);
+
   /* if conditional instead of switch case
   so I can break out of it to exit app */
 

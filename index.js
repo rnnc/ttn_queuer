@@ -1,15 +1,24 @@
 require('dotenv').config();
-const Queue = require('./queue');
+// check if credentials exist
+const {
+  FILENAME, TTN_USER, TTN_PASS,
+  YOUTUBE_API_KEY, VIMEO_API_ACCESS_TOKEN,
+  VIMEO_API_CLIENT_ID, VIMEO_API_CLIENT_SECRETS
+} = process.env;
 
-Queue.initQueue();
+if (
+  !FILENAME || !TTN_USER || !TTN_PASS ||
+  !YOUTUBE_API_KEY || !VIMEO_API_ACCESS_TOKEN ||
+  !VIMEO_API_CLIENT_ID || !VIMEO_API_CLIENT_SECRETS 
+) {
+  console.log('Missing credentials, check .env file');
+  process.exit();
+}
 
-/* Queue.pushToQueue([
-  {name: "v1", url:"l1"},
-  {name: "v2", url:"l2"},
-  {name: "v3", url:"l3"},
-  {name: "v4", url:"l4"}
-]) */
 
 const menu = require('./menu');
+const Queue = require('./queue');
+const bot = require('./bot');
 
+Queue.initQueue();
 menu();

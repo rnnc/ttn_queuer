@@ -102,28 +102,28 @@ function getVideoId(url, source) {
   if (!source)
     throw "source required";
 
-  if ("youtube") {
+  if (source=="youtube") {
     const videoId = YOUTUBE_REGEX_VIDEO.exec(url)[2];
     if (!videoId)
       throw "Video link parsing error - Youtube";
     return videoId;
   }
 
-  if ("vimeo") {
+  if (source=="vimeo") {
     const videoId = VIMEO_REGEX.exec(url)[1];
     if (!videoId)
       throw "Video link parsing error - Vimeo";
     return videoId;
   }
 
-  if ("dailymotion") {
+  if (source=="dailymotion") {
     const videoId = DAILYMOTION_REGEX.exec(url)[2];
     if (!videoId)
       throw "Video link parsing error - Dailymotion";
     return videoId;
   }
 
-  if ("drive") {
+  if (source=="drive") {
     const videoId = GOOGLEDRIVE_REGEX.exec(url)[1];
     if (!videoId)
       throw "Video link parsing error - Google Drive";
@@ -146,8 +146,7 @@ async function getVideoNameYoutube(url) {
 
 function getVideoNameVimeo(url) {
 
-  const videoId = getVideoId(url, "vimeo")
-
+  const videoId = getVideoId(url, "vimeo");
   const vimeo_api = new Vimeo(VIMEO_API_CLIENT_ID, VIMEO_API_CLIENT_SECRET, VIMEO_API_ACCESS_TOKEN)
 
   return new Promise((resolve, reject) => {

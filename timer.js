@@ -1,19 +1,18 @@
 /**  video submission timeout, 2 minutes usually (in ms)
  * @type {Number} 
 */
-const INTERVAL_TIME = 5000;
 
 /**  
  * Is submission timed out? Can only submit 1 video every X minutes
  * @type {Boolean}
- */ 
+ */
 let interVar = false;
 
 /**  
  * starts video timeout timer, errors if already in timeout
  * @param {function(Boolean,String):void} callback
 */
-module.exports.setTimer = (callback) => {
+module.exports.setTimer = (INTERVAL_TIME = 120000, callback) => {
 
   if (interVar)
     callback(null, 'Already in timeout');
