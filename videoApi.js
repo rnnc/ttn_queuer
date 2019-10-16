@@ -18,30 +18,61 @@ module.exports.getVideoName = async (url) => {
   try {
     switch (vidSource) {
       case "youtube":
-        return getVideoNameYoutube(url)
-        break;
+        return getVideoNameYoutube(url);
 
       case "dailymotion":
-        return getVideoNameDailymotion(url)
-        break;
+        return getVideoNameDailymotion(url);
 
       case "vimeo":
-        return getVideoNameVimeo(url)
-        break;
+        return getVideoNameVimeo(url);
 
       case "drive":
-        return getVideoNameDrive(url)
-        break;
+        return getVideoNameDrive(url);
 
       case "error":
         throw "Video source unrecognized";
-        break;
 
       default:
         throw "Switch conditional error"
-        break;
     }
   } catch (e) { throw `${e} (videoApi)` }
+}
+
+/**
+ * @param {String} url
+ * @return {Boolean}
+ */
+module.exports.validateUrl = (url) => {
+
+  const vid_src = detectSource(url);
+  const video_id = getVideoId(url, vid_src);
+
+  if (vid_src === "youtube") {
+    if (video_id.length === 11)
+      return true;
+    return false;
+  }
+
+  if (vid_src === "vimeo") {
+    if (video_id.length > 6 && video_id.length <= 9)
+      return true;
+    return false;
+  }
+
+  if (vid_src === "dailymotion") {
+    if (video_id.length === 7)
+      return true;
+    return false;
+  }
+
+  if (vid_src === "drive") {
+    if (video_id.length === 32)
+      return true;
+    return false;
+  }
+
+  return false;
+
 }
 
 /**
@@ -62,10 +93,49 @@ function detectSource(url) {
   return "error";
 }
 
+/**
+ * @param {String} url
+ * @param {String} source
+ * @return {String|Error}
+ */
+function getVideoId(url, source) {
+  if (!source)
+    throw "source required";
+
+  if ("youtube") {
+    const videoId = YOUTUBE_REGEX_VIDEO.exec(url)[2];
+    if (!videoId)
+      throw "Video link parsing error - Youtube";
+    return videoId;
+  }
+
+  if ("vimeo") {
+    const videoId = VIMEO_REGEX.exec(url)[1];
+    if (!videoId)
+      throw "Video link parsing error - Vimeo";
+    return videoId;
+  }
+
+  if ("dailymotion") {
+    const videoId = DAILYMOTION_REGEX.exec(url)[2];
+    if (!videoId)
+      throw "Video link parsing error - Dailymotion";
+    return videoId;
+  }
+
+  if ("drive") {
+    const videoId = GOOGLEDRIVE_REGEX.exec(url)[1];
+    if (!videoId)
+      throw "Video link parsing error - Google Drive";
+    return videoId;
+  }
+
+  throw "Invalid video source";
+}
+
 async function getVideoNameYoutube(url) {
 
-  const videoId = YOUTUBE_REGEX_VIDEO.exec(url)[2];
-  if (!videoId) throw "Video link parsing error - Youtube";
+  const videoId = getVideoId(url, "youtube");
 
   const reqUrl = "https://www.googleapis.com/youtube/v3/videos?"
     + `part=snippet&fields=items(snippet(title))&id=${videoId}`
@@ -76,8 +146,7 @@ async function getVideoNameYoutube(url) {
 
 function getVideoNameVimeo(url) {
 
-  const videoId = VIMEO_REGEX.exec(url)[1];
-  if (!videoId) throw "Video link parsing error - Vimeo";
+  const videoId = getVideoId(url, "vimeo")
 
   const vimeo_api = new Vimeo(VIMEO_API_CLIENT_ID, VIMEO_API_CLIENT_SECRET, VIMEO_API_ACCESS_TOKEN)
 
@@ -92,8 +161,7 @@ function getVideoNameVimeo(url) {
 
 async function getVideoNameDailymotion(url) {
 
-  const videoId = DAILYMOTION_REGEX.exec(url)[2];
-  if (!videoId) throw "Video link parsing error - Dailymotion";
+  const videoId = getVideoId(url, "dailymotion");
 
   const reqUrl = `https://api.dailymotion.com/video/${videoId}?fields=title`;
 
@@ -102,8 +170,7 @@ async function getVideoNameDailymotion(url) {
 
 async function getVideoNameDrive(url) {
 
-  const videoId = GOOGLEDRIVE_REGEX.exec(url)[1];
-  if (!videoId) throw "Video link parsing error - Google Drive";
+  const videoId = getVideoId(url, "drive");
 
   const reqUrl = `https://www.googleapis.com/drive/v3/`
     + `files/${videoId}?fields=name&key=${YOUTUBE_API_KEY}`;
