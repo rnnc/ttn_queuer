@@ -42,20 +42,28 @@ module.exports.getVideoName = async (url) => {
  * @param {String} url
  * @return {Boolean}
  */
-module.exports.validateUrl = (url) => {
+module.exports.validateUrl = async (url) => {
 
   const vid_src = detectSource(url);
   const video_id = getVideoId(url, vid_src);
 
   if (vid_src === "youtube") {
-    if (video_id.length === 11)
-      return true;
+    if (video_id.length === 11) {
+      try {
+        const name = await getVideoNameYoutube(url);
+        return true;
+      } catch (e) { return "Invalid URL/Video doesn't exist" }
+    }
     return false;
   }
 
   if (vid_src === "vimeo") {
-    if (video_id.length > 6 && video_id.length <= 9)
-      return true;
+    if (video_id.length > 6 && video_id.length <= 9) {
+      try {
+        const name = await getVideoNameVimeo(url);
+        return true;
+      } catch (e) { return e.error }
+    }
     return false;
   }
 
@@ -102,28 +110,28 @@ function getVideoId(url, source) {
   if (!source)
     throw "source required";
 
-  if (source=="youtube") {
+  if (source == "youtube") {
     const videoId = YOUTUBE_REGEX_VIDEO.exec(url)[2];
     if (!videoId)
       throw "Video link parsing error - Youtube";
     return videoId;
   }
 
-  if (source=="vimeo") {
+  if (source == "vimeo") {
     const videoId = VIMEO_REGEX.exec(url)[1];
     if (!videoId)
       throw "Video link parsing error - Vimeo";
     return videoId;
   }
 
-  if (source=="dailymotion") {
+  if (source == "dailymotion") {
     const videoId = DAILYMOTION_REGEX.exec(url)[2];
     if (!videoId)
       throw "Video link parsing error - Dailymotion";
     return videoId;
   }
 
-  if (source=="drive") {
+  if (source == "drive") {
     const videoId = GOOGLEDRIVE_REGEX.exec(url)[1];
     if (!videoId)
       throw "Video link parsing error - Google Drive";
@@ -141,7 +149,9 @@ async function getVideoNameYoutube(url) {
     + `part=snippet&fields=items(snippet(title))&id=${videoId}`
     + `&key=${YOUTUBE_API_KEY}`;
 
-  return (await axios.get(reqUrl)).data.items[0].snippet.title;
+  try {
+    return (await axios.get(reqUrl)).data.items[0].snippet.title;
+  } catch (e) { throw e; };
 }
 
 function getVideoNameVimeo(url) {

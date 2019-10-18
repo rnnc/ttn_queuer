@@ -23,18 +23,20 @@ function pullFromQueue(queue) {
   return pulled_vid;
 }
 
-module.exports.initBot = () => {
+module.exports.initBot = (INTERVAL=120000) => {
 
   setInterval(() => {
     const queue = getQueue();
+    const d = new Date();
+    console.log(`[${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}]`);
     if (queue.length == 0) {
-      console.log(`[${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}] Queue Empty\n`);
+      console.log(" || Checked :: Queue Empty ||\n");
     } else {
       const pulled_vid = pullFromQueue(queue);
       submitVideo(pulled_vid);
       writeQueue(queue);
     }
-  }, 120000);
+  }, INTERVAL);
 
 }
 
@@ -47,7 +49,18 @@ function submitVideo(vidObject) {
         ...vidObject, channel: 'ttn'
       });
     })
-    .then(() => console.log('bot: Submitted Video'))
+    .then(() => {
+      console.log('bot: Submitted Video');
+      console.log(`removing "${vidObject.name}" from queue`);
+    })
     .catch(err => console.log(err.message, err.code))
     .finally(() => bot.stop());
+}
+
+function testSubmit(vidObject) {
+
+  const { name, url } = vidObject;
+  const d = new Date();
+  console.log('\n[test submit]\n-------------');
+  console.log('name:', name, '\nurl:', url,'\n');
 }
