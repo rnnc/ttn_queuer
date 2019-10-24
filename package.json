@@ -10,6 +10,8 @@
     "create-dispatcher": "^1.4.0",
     "dotenv": "^8.1.0",
     "inquirer": "^7.0.0",
+    "luxon": "^1.19.3",
+    "mongoose": "^5.7.5",
     "vimeo": "^2.1.1"
   }
 }

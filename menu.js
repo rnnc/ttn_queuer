@@ -1,6 +1,9 @@
 const inquirer = require('inquirer');
+const luxon = require('luxon');
+luxon.Settings.defaultLocal = 'America/Toronto';
+const { DateTime } = luxon;
 
-const Queue = require('./queue');
+const Queue = require('./db');
 const videoApi = require('./videoApi');
 
 module.exports = async () => {
@@ -25,54 +28,57 @@ module.exports = async () => {
     // Push to Queue
     if (menu_choice === 1) {
       const { push_url, push_name } = await inquirer.prompt(queue_push_prompt);
+
       if (push_name == "none")
         continue;
-      else {
-        console.log("\n +┌", push_name, "\n  └", push_url);
-        Queue.pushToQueue([{ name: push_name, url: push_url }]);
-      }
+
+      const pushed_vid = await Queue.pushToQueue({ name: push_name, url: push_url });
+      console.log(pushed_vid);
+      const { name, url, date_added } = pushed_vid;
+      printVideoObject({ name, url, date_added }, "+");
     }
 
     // Remove from Queue
     if (menu_choice === 2) {
+      // queue_remove is an id for videoObject
       const { queue_remove } = await inquirer.prompt(queue_remove_prompt);
 
-      if (queue_remove !== "x")
-        console.log('Removed from Queue:', Queue.removeFromQueue(queue_remove));
-
+      if (queue_remove !== 0) {
+        const { name, url, date_added } = await Queue.removeFromQueue(queue_remove)
+        printVideoObject({ name, url, date_added }, "~");
+      }
     }
 
     // Show Queue
     if (menu_choice === 3) {
-      const getQ = Queue.getQueue();
+      const curr_queue = await Queue.getQueue();
 
-      console.log('\n');
+      for (const { name, url, date_added } of curr_queue)
+        printVideoObject({ name, url, date_added }, "*");
 
-      for (const vid of getQ)
-        console.log(" * ", vid.name, ":", vid.url);
-
-      if (getQ.length === 0)
+      if (curr_queue.length === 0)
         console.log(' [ Empty ] ');
-
     }
 
+    // Clear Queue
     if (menu_choice === 4) {
 
       const { queue_clear } = await inquirer.prompt(queue_clear_prompt);
 
       if (queue_clear) {
-        if (Queue.length() === 0)
-          console.log('[ Queue Empty ]');
+        if ((await Queue.getLength()) === 0)
+          console.log(' [ Queue Empty ] ');
         else {
-          console.log(`\t...Cleared ${Queue.length()} items`);
-          Queue.clearQueue();
+          const num_items = await Queue.clearQueue();
+          console.log(`\t...Cleared ${num_items} items`);
         }
       } else
-        console.log("< Queue not cleared >")
-
+        console.log(' <- Queue not cleared -> ');
     }
-
   }
+
+
+  
 }
 
 
@@ -130,9 +136,9 @@ const queue_remove_prompt = [
     message: 'Select video to remove',
     choices: () => {
       const getQ = Queue.getQueue().map((vid, i) =>
-        ({ name: `*  ${vid.name} : ${vid.url}`, value: i }));
+        ({ name: `*  ${vid.name} : ${vid.url}`, value: vid.id }));
       getQ.unshift(new inquirer.Separator());
-      getQ.push(new inquirer.Separator(), { name: "< Don't Remove >", value: "x" });
+      getQ.push(new inquirer.Separator(), { name: "< Don't Remove >", value: 0 });
       return getQ;
     }
   }
@@ -146,3 +152,11 @@ const queue_clear_prompt = [
     default: false
   }
 ]
+
+function printVideoObject({ name, url, date_added }, operator = "#") {
+  console.log(
+    `\n  ${operator}┌`, name,
+    "\n   ├", url,
+    "\n   └", DateTime.fromISO(date_added).toFormat('dd-MM-yyyy | HH:mm:ss z')
+  );
+}

@@ -1,5 +1,14 @@
 require('dotenv').config();
 const fs = require('fs');
+const mongoose = require('mongoose');
+
+if (!mongoose.connection.readyState)
+  mongoose.connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    seUnifiedTopology: true
+  }).then(async () => {
+    console.log(` ~:: connected ::~ \n`);
+  }).catch(error => console.log(error));
 
 const ttn_bot = require('@ttn/bot');
 const bot = ttn_bot.withAuth(ttn_bot.createBot)({ verbose: true });
