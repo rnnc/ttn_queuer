@@ -1,51 +1,16 @@
 require('dotenv').config();
-const fs = require('fs');
-const mongoose = require('mongoose');
 
-if (!mongoose.connection.readyState)
-  mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    seUnifiedTopology: true
-  }).then(async () => {
-    console.log(` ~:: connected ::~ \n`);
-  }).catch(error => console.log(error));
+//check validation
+require('./validation').envVarValidation();
 
 const ttn_bot = require('@ttn/bot');
-const bot = ttn_bot.withAuth(ttn_bot.createBot)({ verbose: true });
+const bot = ttn_bot.withAuth(ttn_bot.createBot)({ verbose: false });
 
-const timer = require('./timer');
+const mongoose = require('mongoose');
+const { DateTime } = require('luxon');
+const Queue = require('./queue');
 
-const { FILENAME, TTN_USER, TTN_PASS } = process.env;
-
-function getQueue() {
-  const queue = JSON.parse(fs.readFileSync(`./${FILENAME}`));
-  return queue;
-}
-
-function writeQueue(queue) {
-  fs.writeFileSync(`./${FILENAME}`, JSON.stringify(queue, null, 2))
-}
-
-function pullFromQueue(queue) {
-  const pulled_vid = queue.shift();
-  writeQueue(queue);
-  return pulled_vid;
-}
-
-module.exports.initBot = () => {
-
-  setInterval(() => {
-    const queue = getQueue();
-    if (queue.length == 0) {
-      console.log(`[${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}] Queue Empty\n`);
-    } else {
-      const pulled_vid = pullFromQueue(queue);
-      submitVideo(pulled_vid);
-      writeQueue(queue);
-    }
-  }, 120000);
-
-}
+const { TTN_USER, TTN_PASS, INTERVAL_DURATION } = process.env;
 
 function submitVideo(vidObject) {
   bot.start()
@@ -56,7 +21,44 @@ function submitVideo(vidObject) {
         ...vidObject, channel: 'ttn'
       });
     })
-    .then(() => console.log('bot: Submitted Video'))
+    .then(() => console.log('bot : Submitted Video'))
     .catch(err => console.log(err.message, err.code))
     .finally(() => bot.stop());
 }
+
+async function initBot() {
+
+  const INTERVAL_TIME = (INTERVAL_DURATION) ? INTERVAL_DURATION : 120000;
+
+  setInterval(async () => {
+
+    const q_l = await Queue.getLength();
+
+    if (q_l > 0) {
+
+      const { name, url } = await Queue.pullFromQueue();
+      await submitVideo({ name, url });
+
+    } else console.log('[Queue Empty]');
+
+    const next_dt = DateTime.local().plus({ seconds: 120 });
+
+    console.log('\n__suspending__\nBe back @', next_dt.toFormat('dd-MM-yyyy | HH:mm:ss z'));
+
+  }, INTERVAL_TIME);
+
+}
+
+if (!mongoose.connection.readyState)
+  mongoose.connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  }).then(async () => {
+
+    console.log(` ~:: connected to database ::~ \n`);
+
+    await initBot();
+
+    console.log(" == exiting app ==");
+
+  }).catch(error => console.log(error));

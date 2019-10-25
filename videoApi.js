@@ -12,6 +12,7 @@ const {
   VIMEO_API_ACCESS_TOKEN
 } = process.env;
 
+/** @returns {Promise<String>} */
 module.exports.getVideoName = async (url) => {
 
   const vidSource = detectSource(url);
@@ -66,12 +67,12 @@ module.exports.validateUrl = (url) => {
   }
 
   if (vid_src === "drive") {
-    if (video_id.length === 32)
+    if (video_id.length >= 32)
       return true;
     return false;
   }
 
-  return false;
+  throw "Source not found";
 
 }
 
@@ -102,28 +103,28 @@ function getVideoId(url, source) {
   if (!source)
     throw "source required";
 
-  if (source=="youtube") {
+  if (source == "youtube") {
     const videoId = YOUTUBE_REGEX_VIDEO.exec(url)[2];
     if (!videoId)
       throw "Video link parsing error - Youtube";
     return videoId;
   }
 
-  if (source=="vimeo") {
+  if (source == "vimeo") {
     const videoId = VIMEO_REGEX.exec(url)[1];
     if (!videoId)
       throw "Video link parsing error - Vimeo";
     return videoId;
   }
 
-  if (source=="dailymotion") {
+  if (source == "dailymotion") {
     const videoId = DAILYMOTION_REGEX.exec(url)[2];
     if (!videoId)
       throw "Video link parsing error - Dailymotion";
     return videoId;
   }
 
-  if (source=="drive") {
+  if (source == "drive") {
     const videoId = GOOGLEDRIVE_REGEX.exec(url)[1];
     if (!videoId)
       throw "Video link parsing error - Google Drive";
@@ -133,6 +134,7 @@ function getVideoId(url, source) {
   throw "Invalid video source";
 }
 
+/** @returns {Promise<String>} */
 async function getVideoNameYoutube(url) {
 
   const videoId = getVideoId(url, "youtube");
@@ -144,6 +146,7 @@ async function getVideoNameYoutube(url) {
   return (await axios.get(reqUrl)).data.items[0].snippet.title;
 }
 
+/** @returns {Promise<String>} */
 function getVideoNameVimeo(url) {
 
   const videoId = getVideoId(url, "vimeo");
@@ -158,6 +161,7 @@ function getVideoNameVimeo(url) {
   })
 }
 
+/** @returns {Promise<String>} */
 async function getVideoNameDailymotion(url) {
 
   const videoId = getVideoId(url, "dailymotion");
@@ -167,6 +171,7 @@ async function getVideoNameDailymotion(url) {
   return (await axios.get(reqUrl)).data.title;
 }
 
+/** @returns {Promise<String>} */
 async function getVideoNameDrive(url) {
 
   const videoId = getVideoId(url, "drive");

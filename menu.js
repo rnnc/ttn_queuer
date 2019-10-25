@@ -3,10 +3,10 @@ const luxon = require('luxon');
 luxon.Settings.defaultLocal = 'America/Toronto';
 const { DateTime } = luxon;
 
-const Queue = require('./db');
+const Queue = require('./queue');
 const videoApi = require('./videoApi');
 
-module.exports = async () => {
+module.exports = async (mongoose) => {
 
   console.log(`\n { This is only terminal based menu }
  { Run bot.js in a seperate terminal }
@@ -29,11 +29,11 @@ module.exports = async () => {
     if (menu_choice === 1) {
       const { push_url, push_name } = await inquirer.prompt(queue_push_prompt);
 
-      if (push_name == "none")
+      if (push_name == "none" || push_name == "") {
+        console.log('\n\t<<- Operation Aborted ->>');
         continue;
-
+      }
       const pushed_vid = await Queue.pushToQueue({ name: push_name, url: push_url });
-      console.log(pushed_vid);
       const { name, url, date_added } = pushed_vid;
       printVideoObject({ name, url, date_added }, "+");
     }
@@ -57,7 +57,7 @@ module.exports = async () => {
         printVideoObject({ name, url, date_added }, "*");
 
       if (curr_queue.length === 0)
-        console.log(' [ Empty ] ');
+        console.log('\n\t<<- Empty ->> ');
     }
 
     // Clear Queue
@@ -70,15 +70,15 @@ module.exports = async () => {
           console.log(' [ Queue Empty ] ');
         else {
           const num_items = await Queue.clearQueue();
-          console.log(`\t...Cleared ${num_items} items`);
+          console.log(`\n\t...Cleared ${num_items} items`);
         }
       } else
-        console.log(' <- Queue not cleared -> ');
+        console.log('\n\t<<- Operation Aborted ->>');
     }
   }
-
-
-  
+  console.clear();
+  console.log('\n\t| Application Closed | \n')
+  mongoose.connection.close();
 }
 
 
@@ -114,6 +114,7 @@ const queue_push_prompt = [
       try {
         return videoApi.validateUrl(input);
       } catch (e) {
+        console.log(e);
         return "Source not recognized"
       }
     }
@@ -134,12 +135,13 @@ const queue_remove_prompt = [
     type: 'list',
     name: 'queue_remove',
     message: 'Select video to remove',
-    choices: () => {
-      const getQ = Queue.getQueue().map((vid, i) =>
-        ({ name: `*  ${vid.name} : ${vid.url}`, value: vid.id }));
-      getQ.unshift(new inquirer.Separator());
-      getQ.push(new inquirer.Separator(), { name: "< Don't Remove >", value: 0 });
-      return getQ;
+    choices: async () => {
+      const curr_queue = (await Queue.getQueue())
+        .map(vid =>
+          ({ name: `*  ${vid.name} : ${vid.url}`, value: vid.id }));
+      curr_queue.unshift(new inquirer.Separator());
+      curr_queue.push(new inquirer.Separator(), { name: "< Don't Remove >", value: 0 });
+      return curr_queue;
     }
   }
 ];
@@ -157,6 +159,6 @@ function printVideoObject({ name, url, date_added }, operator = "#") {
   console.log(
     `\n  ${operator}┌`, name,
     "\n   ├", url,
-    "\n   └", DateTime.fromISO(date_added).toFormat('dd-MM-yyyy | HH:mm:ss z')
+    "\n   └", DateTime.fromJSDate(date_added).toFormat('dd-MM-yyyy | HH:mm:ss z')
   );
 }
