@@ -15,7 +15,7 @@
     "vimeo": "^2.1.1"
   },
   "scripts": {
-    "menu": "npm start index.js",
+    "menu": "npm run index.js",
     "bot": "pm2 start bot.js",
     "youtube": "pm2 start youtube_checker.js"
   }
