@@ -43,20 +43,28 @@ module.exports.getVideoName = async (url) => {
  * @param {String} url
  * @return {Boolean}
  */
-module.exports.validateUrl = (url) => {
+module.exports.validateUrl = async (url) => {
 
   const vid_src = detectSource(url);
   const video_id = getVideoId(url, vid_src);
 
   if (vid_src === "youtube") {
-    if (video_id.length === 11)
-      return true;
+    if (video_id.length === 11) {
+      try {
+        const name = await getVideoNameYoutube(url);
+        return true;
+      } catch (e) { return "Invalid URL/Video doesn't exist" }
+    }
     return false;
   }
 
   if (vid_src === "vimeo") {
-    if (video_id.length > 6 && video_id.length <= 9)
-      return true;
+    if (video_id.length > 6 && video_id.length <= 9) {
+      try {
+        const name = await getVideoNameVimeo(url);
+        return true;
+      } catch (e) { return e.error }
+    }
     return false;
   }
 
@@ -143,7 +151,9 @@ async function getVideoNameYoutube(url) {
     + `part=snippet&fields=items(snippet(title))&id=${videoId}`
     + `&key=${YOUTUBE_API_KEY}`;
 
-  return (await axios.get(reqUrl)).data.items[0].snippet.title;
+  try {
+    return (await axios.get(reqUrl)).data.items[0].snippet.title;
+  } catch (e) { throw e; };
 }
 
 /** @returns {Promise<String>} */

@@ -103,7 +103,7 @@ const queue_push_prompt = [
     type: 'input',
     message: 'Enter video url [Supported: Youtube, Dailymotion, Vimeo, Google Drive] \n',
     name: 'push_url',
-    validate: (input) => {
+    validate: async (input) => {
 
       if (input == "" || input == " ")
         return 'Input is empty';
@@ -112,7 +112,7 @@ const queue_push_prompt = [
         return true;
 
       try {
-        return videoApi.validateUrl(input);
+        return await videoApi.validateUrl(input);
       } catch (e) {
         console.log(e);
         return "Source not recognized"
@@ -124,7 +124,7 @@ const queue_push_prompt = [
     name: 'push_name',
     default: async ({ push_url }) => {
       if (push_url == "none")
-        return "";
+        return "none";
       return await videoApi.getVideoName(push_url);
     }
   }
