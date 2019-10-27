@@ -4,15 +4,12 @@ require('./validation').envVarValidation();
 
 const axios = require('axios');
 const mongoose = require('mongoose');
-const luxon = require('luxon');
-
-const { DateTime, Duration } = luxon;
-luxon.Settings.defaultLocal = 'America/Toronto';
+const { DateTime, Duration } = require('luxon');
 
 const { isObjectEmpty } = require('./util');
 const { pushToQueue, Channel } = require('./queue');
 
-const DT_FORMAT = 'HH:mm:ss z | dd-MM-yyyy';
+const DT_FORMAT = 'HH:mm:ss (z) | dd-MM-yyyy';
 const { YOUTUBE_API_KEY, MONGO_URI } = process.env;
 const INTERVAL = Duration.fromObject({ minutes: 15 });
 

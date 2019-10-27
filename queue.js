@@ -37,7 +37,7 @@ module.exports.pushToQueue = async ({ name, url }) => {
 /** @return {vidObject} */
 module.exports.pullFromQueue = async () => {
   const pulled_vid = (await Video.find({}).sort({ "date_added": 1 }).limit(1))[0];
-  await Video.findByIdAndDelete(pulled_vid.id);
+  //await Video.findByIdAndDelete(pulled_vid.id);
   return pulled_vid;
 }
 /** @return {vidObject|Error} */

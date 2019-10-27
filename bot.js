@@ -7,14 +7,13 @@ const ttn_bot = require('@ttn/bot');
 const bot = ttn_bot.withAuth(ttn_bot.createBot)({ verbose: false });
 
 const mongoose = require('mongoose');
-const luxon = require('luxon');
-
-const { DateTime, Duration } = luxon;
-luxon.Settings.defaultLocal = 'America/Toronto';
+const { DateTime } = require('luxon');
 
 const Queue = require('./queue');
 
 const { TTN_USER, TTN_PASS, INTERVAL_DURATION } = process.env;
+
+const DT_FORMAT = 'HH:mm:ss (z) | dd-MM-yyyy';
 
 async function submitVideo(vidObject) {
   return bot.start()
@@ -26,7 +25,7 @@ async function submitVideo(vidObject) {
       });
     })
     .then(() => console.log('bot : Submitted Video'))
-    .catch(err => console.log(err.message, err.code))
+    .catch(err => { throw err })
     .finally(() => bot.stop());
 }
 
@@ -34,21 +33,30 @@ async function initBot() {
 
   const INTERVAL_TIME = (INTERVAL_DURATION) ? INTERVAL_DURATION : 130000;
 
-  setInterval(async () => {
+  /* setInterval(async () => { */
 
-    if ((await Queue.getLength()) > 0) {
+  console.log("\n :: Started Check [",
+    DateTime.local().setZone("America/Toronto").toFormat(DT_FORMAT),
+    "]::\n");
 
-      const { name, url } = await Queue.pullFromQueue();
+  if ((await Queue.getLength()) > 0) {
+
+    const { _id, name, url } = await Queue.pullFromQueue();
+    try {
       await submitVideo({ name, url });
+      await Queue.removeFromQueue(_id);
+      console.log('Submitted Video:', name);
+    } catch (error) {
+      console.log("  [x] Failed to submit video\n   -  ERROR:", error.message)
+    };
 
-    } else console.log('[Queue Empty]');
+  } else console.log('[Queue Empty]');
 
-    const next_dt = DateTime.local().plus({ seconds: 120 });
+  const next_dt = DateTime.local().plus({ seconds: 130 }).toFormat(DT_FORMAT);
 
-    console.log('\n__suspending__\nBe back @',
-      next_dt.toFormat('dd-MM-yyyy | HH:mm:ss z'), "\n");
+  console.log('\n :: Suspending, Be back @', next_dt, " :: \n\t________________\n");
 
-  }, INTERVAL_TIME);
+  /* }, INTERVAL_TIME); */
 
 }
 
