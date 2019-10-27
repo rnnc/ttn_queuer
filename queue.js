@@ -7,7 +7,18 @@ const videoSchema = new mongoose.Schema({
   url: { type: String, required: true }
 }, { timestamps: { createdAt: "date_added" } });
 
+const channelSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  channelId: { type: String, required: true },
+  videoCache: {
+    url: { type: String },
+    name: { type: String },
+    publishedAt: { type: Date }
+  }
+});
+
 const Video = mongoose.model('video', videoSchema);
+module.exports.Channel = mongoose.model('channel', channelSchema);
 
 /** @returns {Number} */
 module.exports.getLength = async () => (await Video.find({})).length;
@@ -49,4 +60,5 @@ module.exports.clearQueue = async () => (await Video.deleteMany({})).deletedCoun
 * @type {Object}
 * @property {String} name
 * @property {String} url
+* @property {Date} date_added
 */

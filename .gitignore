@@ -1,5 +1,5 @@
 /node_modules
-.env
-
 playground.js
-queue_backup.json
+
+.env
+ttnqueuer.pem
