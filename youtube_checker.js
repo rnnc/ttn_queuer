@@ -4,7 +4,10 @@ require('./validation').envVarValidation();
 
 const axios = require('axios');
 const mongoose = require('mongoose');
-const { DateTime, Duration } = require('luxon');
+const luxon = require('luxon');
+
+const { DateTime, Duration } = luxon;
+luxon.Settings.defaultLocal = 'America/Toronto';
 
 const { isObjectEmpty } = require('./util');
 const { pushToQueue, Channel } = require('./queue');
@@ -21,7 +24,7 @@ async function initChecker() {
 async function checkLoop() {
 
   console.log("\n:: Check Started [",
-    DateTime.local().toFormat(DT_FORMAT), "] ::\n");
+    DateTime.local().setZone("America/Toronto").toFormat(DT_FORMAT), "] ::\n");
 
   let submitted = false;
 

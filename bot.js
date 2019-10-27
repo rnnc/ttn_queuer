@@ -7,7 +7,11 @@ const ttn_bot = require('@ttn/bot');
 const bot = ttn_bot.withAuth(ttn_bot.createBot)({ verbose: false });
 
 const mongoose = require('mongoose');
-const { DateTime } = require('luxon');
+const luxon = require('luxon');
+
+const { DateTime, Duration } = luxon;
+luxon.Settings.defaultLocal = 'America/Toronto';
+
 const Queue = require('./queue');
 
 const { TTN_USER, TTN_PASS, INTERVAL_DURATION } = process.env;
@@ -28,7 +32,7 @@ async function submitVideo(vidObject) {
 
 async function initBot() {
 
-  const INTERVAL_TIME = (INTERVAL_DURATION) ? INTERVAL_DURATION : 125000;
+  const INTERVAL_TIME = (INTERVAL_DURATION) ? INTERVAL_DURATION : 130000;
 
   setInterval(async () => {
 
