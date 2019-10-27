@@ -33,30 +33,28 @@ async function initBot() {
 
   const INTERVAL_TIME = (INTERVAL_DURATION) ? INTERVAL_DURATION : 130000;
 
-  /* setInterval(async () => { */
+  setInterval(async () => {
+    const start_dt = DateTime.local().setZone("America/Toronto").toFormat(DT_FORMAT);
+    console.log("\n :: Started Check [", start_dt, "] ::\n");
 
-  console.log("\n :: Started Check [",
-    DateTime.local().setZone("America/Toronto").toFormat(DT_FORMAT),
-    "]::\n");
+    if ((await Queue.getLength()) > 0) {
 
-  if ((await Queue.getLength()) > 0) {
+      const { _id, name, url } = await Queue.pullFromQueue();
+      try {
+        await submitVideo({ name, url });
+        await Queue.removeFromQueue(_id);
+        console.log("   -  ", name);
+      } catch (error) {
+        console.log("  [x] Failed to submit video\n   -  ERROR:", error.message)
+      };
 
-    const { _id, name, url } = await Queue.pullFromQueue();
-    try {
-      await submitVideo({ name, url });
-      await Queue.removeFromQueue(_id);
-      console.log('Submitted Video:', name);
-    } catch (error) {
-      console.log("  [x] Failed to submit video\n   -  ERROR:", error.message)
-    };
+    } else console.log('[Queue Empty]');
 
-  } else console.log('[Queue Empty]');
+    const next_dt = DateTime.local().plus({ seconds: 130 }).toFormat(DT_FORMAT);
+    console.log('\n ::    Be Back by [', next_dt, "] ::\n\t________________\n");
 
-  const next_dt = DateTime.local().plus({ seconds: 130 }).toFormat(DT_FORMAT);
 
-  console.log('\n :: Suspending, Be back @', next_dt, " :: \n\t________________\n");
-
-  /* }, INTERVAL_TIME); */
+  }, INTERVAL_TIME);
 
 }
 
