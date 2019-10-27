@@ -12,8 +12,8 @@ const Queue = require('./queue');
 
 const { TTN_USER, TTN_PASS, INTERVAL_DURATION } = process.env;
 
-function submitVideo(vidObject) {
-  bot.start()
+async function submitVideo(vidObject) {
+  return bot.start()
     .then(() => bot.authenticate(TTN_USER, TTN_PASS))
     .then((user) => {
       console.log('bot : Authenticated');
@@ -28,13 +28,11 @@ function submitVideo(vidObject) {
 
 async function initBot() {
 
-  const INTERVAL_TIME = (INTERVAL_DURATION) ? INTERVAL_DURATION : 120000;
+  const INTERVAL_TIME = (INTERVAL_DURATION) ? INTERVAL_DURATION : 125000;
 
   setInterval(async () => {
 
-    const q_l = await Queue.getLength();
-
-    if (q_l > 0) {
+    if ((await Queue.getLength()) > 0) {
 
       const { name, url } = await Queue.pullFromQueue();
       await submitVideo({ name, url });
@@ -43,7 +41,8 @@ async function initBot() {
 
     const next_dt = DateTime.local().plus({ seconds: 120 });
 
-    console.log('\n__suspending__\nBe back @', next_dt.toFormat('dd-MM-yyyy | HH:mm:ss z'));
+    console.log('\n__suspending__\nBe back @',
+      next_dt.toFormat('dd-MM-yyyy | HH:mm:ss z'), "\n");
 
   }, INTERVAL_TIME);
 
@@ -55,9 +54,6 @@ mongoose
   .then(async () => {
 
     console.log(` ~:: connected to database ::~ \n`);
-    
-    await initBot();
-
-    console.log(" == exiting app ==");
+    initBot();
 
   }).catch(error => console.log(error));
