@@ -80,7 +80,7 @@ module.exports.validateUrl = async (url) => {
     return false;
   }
 
-  throw "Source not found";
+  return "Source not found";
 
 }
 

@@ -21,11 +21,11 @@ module.exports = async (mongoose) => {
 
     const { menu_choice } = await inquirer.prompt(main_menu_prompt);
 
-    // Exit application
+    // 0. Exit application
     if (menu_choice === 0)
       break;
 
-    // Push to Queue
+    // 1. Push to Queue
     if (menu_choice === 1) {
       const { push_url, push_name } = await inquirer.prompt(queue_push_prompt);
 
@@ -38,7 +38,7 @@ module.exports = async (mongoose) => {
       printVideoObject({ name, url, date_added }, "+");
     }
 
-    // Remove from Queue
+    // 2. Remove from Queue
     if (menu_choice === 2) {
       // queue_remove is an id for videoObject
       const { queue_remove } = await inquirer.prompt(queue_remove_prompt);
@@ -49,7 +49,7 @@ module.exports = async (mongoose) => {
       }
     }
 
-    // Show Queue
+    // 3. Show Queue
     if (menu_choice === 3) {
       const curr_queue = await Queue.getQueue();
 
@@ -60,7 +60,7 @@ module.exports = async (mongoose) => {
         console.log('\n\t<<- Empty ->> ');
     }
 
-    // Clear Queue
+    // 4. Clear Queue
     if (menu_choice === 4) {
 
       const { queue_clear } = await inquirer.prompt(queue_clear_prompt);
@@ -110,9 +110,9 @@ const queue_push_prompt = [
 
       if (input == "none")
         return true;
-
+      
       try {
-        return await videoApi.validateUrl(input);
+        return (await videoApi.validateUrl(input));
       } catch (e) {
         console.log(e);
         return "Source not recognized"

@@ -50,10 +50,8 @@ async function initBot() {
 
     } else console.log('[Queue Empty]');
 
-    const next_dt = DateTime.local().setZone("America/Toronto")
-      .plus({ seconds: 130 }).toFormat(DT_FORMAT);
+    const next_dt = DateTime.local().setZone("America/Toronto").plus({ seconds: 130 }).toFormat(DT_FORMAT);
     console.log('\n ::    Be Back by [', next_dt, "] ::\n\t________________\n");
-
 
   }, INTERVAL_TIME);
 
